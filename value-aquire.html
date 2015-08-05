@@ -1,0 +1,199 @@
+<!--
+@license
+Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+
+    Aquire a value from an input field, combine with value present
+
+Example:
+
+    <input is="value-aquire" value-name="xxx" />
+    <input is="value-aquire" value-name="xxx" />
+    <input is="value-aquire" value-name="xxx" />
+
+    <input is="value-present" value-name="xxx" />
+
+
+@demo
+-->
+<dom-module id="value-aquire">
+
+  <style>
+    :host {
+       }
+
+  </style>
+
+  <template>
+    <content></content>
+  </template>
+
+</dom-module>
+
+<dom-module id="value-present">
+
+  <style>
+    :host {
+       }
+
+  </style>
+
+  <template>
+    <content></content>
+  </template>
+
+</dom-module>
+
+<script>
+
+  Polymer({
+
+    is: 'value-aquire',
+
+    extends: 'input',
+
+    properties: {
+
+      /**
+       * `fancy` indicates that the element should don a monocle and tophat,
+       * while checking its pocket watch.
+       */
+      valueName: String,
+
+      valueCache: Number,
+    },
+
+    // Element Lifecycle
+
+    ready: function() {
+      // `ready` is called after all elements have been configured, but
+      // propagates bottom-up. This element's children are ready, but parents
+      // are not.
+      //
+      // This is the point where you should make modifications to the DOM (when
+      // necessary), or kick off any processes the element wants to perform.
+    },
+
+    attached: function() {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+            
+        var these = this;
+
+        if ( window._value_storage === undefined ) {
+            window._value_storage = {};
+        }
+
+        if (window._value_storage[these.valueName] === undefined ) {
+            window._value_storage[these.valueName] = 0;
+        }
+
+        window._value_storage[these.valueName] += parseInt(these.value);
+
+        these.valueCache = parseInt(these.value);
+
+        these.addEventListener('blur', these.updateValue.bind(these) );
+        
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+
+        var these = this;
+        these.removeEventListener('blur', these.updateValue.bind(these) );
+    },
+
+    // Element Behavior
+
+    updateValue: function() {
+
+            var these = this;
+
+            window._value_storage[these.valueName] -= parseInt(these.valueCache);
+            window._value_storage[these.valueName] += parseInt(these.value);
+            these.valueCache = parseInt(these.value);
+            window.postMessage('update',   window.location.href );
+    },
+
+  
+  });
+
+ Polymer({
+
+    is: 'value-present',
+
+    extends: 'input',
+
+    properties: {
+
+      /**
+       * `fancy` indicates that the element should don a monocle and tophat,
+       * while checking its pocket watch.
+       */
+      valueName: String,
+      valueCache: Number,
+    },
+
+    // Element Lifecycle
+
+    ready: function() {
+      // `ready` is called after all elements have been configured, but
+      // propagates bottom-up. This element's children are ready, but parents
+      // are not.
+      //
+      // This is the point where you should make modifications to the DOM (when
+      // necessary), or kick off any processes the element wants to perform.
+    },
+
+    attached: function() {
+      // `attached` fires once the element and its parents have been inserted
+      // into a document.
+      //
+      // This is a good place to perform any work related to your element's
+      // visual state or active behavior (measuring sizes, beginning animations,
+      // loading resources, etc).
+            
+        var these = this;
+
+        window.addEventListener('message', these.redraw.bind(these), false);
+        
+    },
+
+    detached: function() {
+      // The analog to `attached`, `detached` fires when the element has been
+      // removed from a document.
+      //
+      // Use this to clean up anything you did in `attached`.
+
+        var these = this;
+        window.removeEventListener('message', these.redraw.bind(these) );
+    },
+
+    // Element Behavior
+
+    redraw: function(a) {
+
+        var these = this;
+        these.value = window._value_storage[these.valueName] || 0;
+    },
+
+  
+  });
+
+
+</script>
