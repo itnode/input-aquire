@@ -63,11 +63,16 @@ Example:
     properties: {
 
       /**
-       * `fancy` indicates that the element should don a monocle and tophat,
-       * while checking its pocket watch.
+       * `value-name` is the unique name of the calc
        */
       valueName: String,
 
+      
+      valueType: {
+        type: String,
+        value: 'int'
+      },
+      
       valueCache: Number,
     },
 
@@ -97,12 +102,11 @@ Example:
         }
 
         if (window._value_storage[these.valueName] === undefined ) {
-            window._value_storage[these.valueName] = 0;
+            window._value_storage[these.valueName] = 0.00;
         }
 
-        window._value_storage[these.valueName] += parseInt(these.value);
-
-        these.valueCache = parseInt(these.value);
+        window._value_storage[these.valueName] += these.parseValue(these.value);
+        these.valueCache = these.parseValue(these.value);
 
         these.addEventListener('blur', these.updateValue.bind(these) );
 
@@ -110,6 +114,8 @@ Example:
         window.postMessage('update',   window.location.href );
          
     },
+
+
 
     detached: function() {
       // The analog to `attached`, `detached` fires when the element has been
@@ -127,11 +133,31 @@ Example:
 
             var these = this;
 
-            window._value_storage[these.valueName] -= parseInt(these.valueCache);
-            window._value_storage[these.valueName] += parseInt(these.value);
-            these.valueCache = parseInt(these.value);
+            window._value_storage[these.valueName] -= these.parseValue(these.valueCache);
+            window._value_storage[these.valueName] += these.parseValue(these.value);
+            these.valueCache = these.parseValue(these.value);
             window.postMessage('update',   window.location.href );
     },
+
+    
+    parseValue: function(value) {
+
+        var these = this;
+
+        if ( these.valueType === 'int' ) {
+
+            return parseInt(value);
+        
+        } else if ( these.valueType === 'decimal' ) {
+
+            return parseFloat(value);;
+
+        } else {
+
+            return value;
+        }
+
+    }
 
   
   });
@@ -150,6 +176,12 @@ Example:
        */
       valueName: String,
       valueCache: Number,
+
+       valueType: {
+        type: String,
+        value: 'int'
+      },
+
     },
 
     // Element Lifecycle
@@ -192,7 +224,18 @@ Example:
     redraw: function(a) {
 
         var these = this;
-        these.value = window._value_storage[these.valueName] || 0;
+
+        if ( these.valueType === 'int') {
+
+            these.value = window._value_storage[these.valueName] || 0;
+        
+        } else if ( these.valueType === 'decimal') {
+
+            these.value = (window._value_storage[these.valueName] || 0.000).toFixed(2);
+ 
+        }
+
+
     },
 
   
