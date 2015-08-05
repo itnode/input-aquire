@@ -105,7 +105,10 @@ Example:
         these.valueCache = parseInt(these.value);
 
         these.addEventListener('blur', these.updateValue.bind(these) );
-        
+
+        // Initial update 
+        window.postMessage('update',   window.location.href );
+         
     },
 
     detached: function() {
